@@ -87,8 +87,7 @@ void compute_mandelbrot(double left, double right, double top, double bottom)
 		{
 			// Work out the point in the complex plane that
 			// corresponds to this pixel in the output image.
-			complex<double> c(left + (x * (right - left) / WIDTH),
-				top + (y * (bottom - top) / HEIGHT));
+			complex<double> c(left + (x * (right - left) / WIDTH), top + (y * (bottom - top) / HEIGHT));
 
 			// Start off z at (0, 0).
 			complex<double> z(0.0, 0.0);
@@ -113,7 +112,13 @@ void compute_mandelbrot(double left, double right, double top, double bottom)
 			{
 				// z escaped within less than MAX_ITERATIONS
 				// iterations. This point isn't in the set.
-				image[y][x] = 0xFFFFFF; // white
+
+				int red = 255;
+				int green = 100;
+				int blue = 100;
+				int col = (red << 16) | (green << 8) | (blue);
+
+				image[y][x] = (col*iterations) / MAX_ITERATIONS;
 			}
 		}
 	}
@@ -128,10 +133,10 @@ int main(int argc, char *argv[])
 	the_clock::time_point start = the_clock::now();
 
 	// This shows the whole set.
-	compute_mandelbrot(-2.0, 1.0, 1.125, -1.125);
+	//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125);
 
 	// This zooms in on an interesting bit of detail.
-	//compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
+	compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
 
 	// Stop timing
 	the_clock::time_point end = the_clock::now();
