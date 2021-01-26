@@ -7,6 +7,9 @@
 #include <complex>
 #include <fstream>
 #include <iostream>
+#include <list>
+#include <vector>
+#include<algorithm>
 
 // Import things we need from the standard library
 using std::chrono::duration_cast;
@@ -19,15 +22,14 @@ using std::ofstream;
 // Define the alias "the_clock" for the clock type we're going to use.
 typedef std::chrono::steady_clock the_clock;
 
-
 // The size of the image to generate.
-const int WIDTH = 1920;
-const int HEIGHT = 1200;
+const int WIDTH = 640;
+const int HEIGHT = 640;
 
 // The number of times to iterate before we assume that a point isn't in the
 // Mandelbrot set.
 // (You may need to turn this up if you zoom further into the set.)
-const int MAX_ITERATIONS = 500;
+const int MAX_ITERATIONS = 200;
 
 // The image data.
 // Each pixel is represented as 0xRRGGBB.
@@ -124,27 +126,79 @@ void compute_mandelbrot(double left, double right, double top, double bottom)
 	}
 }
 
+long long computeMedian(std::list<long long> times)
+{
+	long long median = 0;
+	auto iter = times.begin();
+
+	for (int i = 0; i < times.size() / 2; ++i)
+	{
+		++iter;
+	}
+
+	// Check for even num of elements
+	if (times.size() % 2 == 0)
+	{
+		// Return the value at current iteration + the value at previous iteration divided by 2;
+		return ((*iter + (*--iter)) / 2);
+	}
+	else
+	{
+		// Otherwise we have an odd amount of elements so just return the middle value.
+		return *iter;
+	}
+}
+
+/*
+ * SIZE: 640*640	-	MAX_ITERATIONS: 200
+ * Time 1: 1530ms
+ * Time 2: 1615ms
+ * Time 3: 1812ms
+ * 
+ * Change code to loop for 30 timings then calculate the median.
+ */
 
 int main(int argc, char *argv[])
 {
 	cout << "Please wait..." << endl;
 
-	// Start timing
-	the_clock::time_point start = the_clock::now();
+	int counter = 0;
+	std::list<long long> times;
 
-	// This shows the whole set.
-	//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125);
+	while (counter < 8)
+	{
+		// Start timing
+		the_clock::time_point start = the_clock::now();
 
-	// This zooms in on an interesting bit of detail.
-	compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
+		// This shows the whole set.
+		//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125);
 
-	// Stop timing
-	the_clock::time_point end = the_clock::now();
+		// This zooms in on an interesting bit of detail.
+		compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
 
-	// Compute the difference between the two times in milliseconds
-	auto time_taken = duration_cast<milliseconds>(end - start).count();
-	cout << "Computing the Mandelbrot set took " << time_taken << " ms." << endl;
+		// Stop timing
+		the_clock::time_point end = the_clock::now();
 
+		// Compute the difference between the two times in milliseconds
+		auto time_taken = duration_cast<milliseconds>(end - start).count();
+		cout << "Computing the Mandelbrot set took " << time_taken << " ms." << endl;
+
+		times.push_back(time_taken);
+
+		++counter;
+	}
+
+	times.sort();
+
+	for (auto iter = times.begin(); iter != times.end(); ++iter)
+	{
+		std::cout << *iter << '\n';
+	}
+
+	long long median = computeMedian(times);
+
+	std::cout << "The median of all times: " << median << '\n';
+	
 	write_tga("output.tga");
 
 	return 0;
