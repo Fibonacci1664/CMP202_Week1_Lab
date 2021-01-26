@@ -23,8 +23,8 @@ using std::ofstream;
 typedef std::chrono::steady_clock the_clock;
 
 // The size of the image to generate.
-const int WIDTH = 640;
-const int HEIGHT = 640;
+const int WIDTH = 1920;
+const int HEIGHT = 1024;
 
 // The number of times to iterate before we assume that a point isn't in the
 // Mandelbrot set.
@@ -81,9 +81,9 @@ void write_tga(const char *filename)
 
 // Render the Mandelbrot set into the image array.
 // The parameters specify the region on the complex plane to plot.
-void compute_mandelbrot(double left, double right, double top, double bottom)
+void compute_mandelbrot(double left, double right, double top, double bottom, int yPosSt, int yPosEnd)
 {
-	for (int y = 0; y < HEIGHT; ++y)
+	for (int y = yPosSt; y < yPosEnd; ++y)
 	{
 		for (int x = 0; x < WIDTH; ++x)
 		{
@@ -149,6 +149,91 @@ long long computeMedian(std::list<long long> times)
 	}
 }
 
+std::list<long long> calculateSlices()
+{
+	std::list<long long> times;
+	int sliceCounter = 1;
+
+	for (int i = 0; i < HEIGHT; i += 64)
+	{
+		// Start timing
+		the_clock::time_point start = the_clock::now();
+
+		// This shows the whole set.
+		//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, i, i + 64);
+
+		// This zooms in on an interesting bit of detail.
+		compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488, i, i + 64);
+
+		// Stop timing
+		the_clock::time_point end = the_clock::now();
+
+		// Compute the difference between the two times in milliseconds
+		auto time_taken = duration_cast<milliseconds>(end - start).count();
+		cout << "Computing the Mandelbrot slice number " << sliceCounter << " took: " << time_taken << " ms." << endl;
+
+		++sliceCounter;
+
+		times.push_back(time_taken);
+	}
+
+	return times;
+}
+
+std::list<long long> runMultipleTimings()
+{
+	std::list<long long> times;
+	int counter = 0;
+
+	while (counter < 9)
+	{
+		// This shows the whole set.
+		compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 16, 498);
+
+		// Start timing
+		the_clock::time_point start = the_clock::now();
+
+		compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 0, HEIGHT);
+
+		// Stop timing
+		the_clock::time_point end = the_clock::now();
+
+		// Compute the difference between the two times in milliseconds
+		auto time_taken = duration_cast<milliseconds>(end - start).count();
+		cout << "Computing the Mandelbrot set took: " << time_taken << " ms." << endl;
+
+		times.push_back(time_taken);
+
+		// This zooms in on an interesting bit of detail.
+		//compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
+
+		++counter;
+	}
+
+	return times;
+}
+
+void standardMandlebrot()
+{
+	// This shows the whole set.
+	compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 16, 498);
+
+	// Start timing
+	the_clock::time_point start = the_clock::now();
+
+	compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 0, HEIGHT);
+
+	// Stop timing
+	the_clock::time_point end = the_clock::now();
+
+	// Compute the difference between the two times in milliseconds
+	auto time_taken = duration_cast<milliseconds>(end - start).count();
+	cout << "Computing the Mandelbrot set took: " << time_taken << " ms." << endl;
+
+	// This zooms in on an interesting bit of detail.
+	//compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
+}
+
 /*
  * SIZE: 640*640	-	MAX_ITERATIONS: 200
  * Time 1: 1530ms
@@ -162,31 +247,9 @@ int main(int argc, char *argv[])
 {
 	cout << "Please wait..." << endl;
 
-	int counter = 0;
-	std::list<long long> times;
-
-	while (counter < 8)
-	{
-		// Start timing
-		the_clock::time_point start = the_clock::now();
-
-		// This shows the whole set.
-		//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125);
-
-		// This zooms in on an interesting bit of detail.
-		compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
-
-		// Stop timing
-		the_clock::time_point end = the_clock::now();
-
-		// Compute the difference between the two times in milliseconds
-		auto time_taken = duration_cast<milliseconds>(end - start).count();
-		cout << "Computing the Mandelbrot set took " << time_taken << " ms." << endl;
-
-		times.push_back(time_taken);
-
-		++counter;
-	}
+	//standardMandlebrot();
+	//std::list<long long> times = runMultipleTimings();
+	std::list<long long> times = calculateSlices();
 
 	times.sort();
 
