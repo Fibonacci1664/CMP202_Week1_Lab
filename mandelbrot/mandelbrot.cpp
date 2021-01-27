@@ -29,7 +29,7 @@ const int HEIGHT = 1024;
 // The number of times to iterate before we assume that a point isn't in the
 // Mandelbrot set.
 // (You may need to turn this up if you zoom further into the set.)
-const int MAX_ITERATIONS = 200;
+const int MAX_ITERATIONS = 1000;
 
 // The image data.
 // Each pixel is represented as 0xRRGGBB.
@@ -97,7 +97,21 @@ void compute_mandelbrot(double left, double right, double top, double bottom, in
 			// Iterate z = z^2 + c until z moves more than 2 units
 			// away from (0, 0), or we've iterated too many times.
 			int iterations = 0;
-			while (abs(z) < 2.0 && iterations < MAX_ITERATIONS)
+
+			// % cost before optimization - ~84.41%
+			
+			// Original @ ~84.41%
+			//while (abs(z) < 2.0 && iterations < MAX_ITERATIONS) // abs(z) = sqrt(z^2) = (abs(z))^2 = z^2
+			//{
+			//	z = (z * z) + c;
+
+			//	++iterations;
+			//}
+
+			// % cost after optimization - ~71.07%
+
+			// Optimized @ ~
+			while (std::norm(z) < 4.0 && iterations < MAX_ITERATIONS) // abs(z) = sqrt(z^2) = (abs(z))^2 = z^2		std::norm - rtns the magnitude squared of a complex number.
 			{
 				z = (z * z) + c;
 
@@ -185,7 +199,7 @@ std::list<long long> runMultipleTimings()
 	std::list<long long> times;
 	int counter = 0;
 
-	while (counter < 9)
+	while (counter < 7)
 	{
 		// This shows the whole set.
 		compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 16, 498);
