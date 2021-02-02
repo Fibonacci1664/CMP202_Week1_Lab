@@ -32,7 +32,7 @@ const int HEIGHT = 1024;
 // The number of times to iterate before we assume that a point isn't in the
 // Mandelbrot set.
 // (You may need to turn this up if you zoom further into the set.)
-const int MAX_ITERATIONS = 100;
+const int MAX_ITERATIONS = 1000;
 
 // The image data.
 // Each pixel is represented as 0xRRGGBB.
@@ -233,7 +233,7 @@ std::list<long long> runMultipleTimings()
 void standardMandlebrot()
 {
 	// This shows the whole set.
-	compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 16, 498);
+	//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 16, 498);
 
 	// Start timing
 	the_clock::time_point start = the_clock::now();
@@ -277,7 +277,8 @@ void standardMandlebrot_Th(int increment)
 
 	// Compute the difference between the two times in milliseconds
 	auto time_taken = duration_cast<milliseconds>(end - start).count();
-	cout << "Computing the Mandelbrot set with threads took: " << time_taken << " ms." << endl;
+
+	cout << "Computing the Mandelbrot set with " << mbThreads.size() << " threads took: " << time_taken << " ms." << endl;
 
 	times << time_taken << ",\n";
 }
@@ -285,13 +286,13 @@ void standardMandlebrot_Th(int increment)
 void runMultiMbThreadTimings()
 {
 	int counter = 1.0f;
-	int divisor = HEIGHT / counter;
+	int increment = HEIGHT / counter;
 
 	while (counter < 9)
 	{
-		standardMandlebrot_Th(divisor);
+		standardMandlebrot_Th(increment);
 		++counter;
-		divisor = HEIGHT / counter;
+		increment = HEIGHT / counter;
 	}
 }
 
