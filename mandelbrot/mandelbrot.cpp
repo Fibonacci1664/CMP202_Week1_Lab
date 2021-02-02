@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include<algorithm>
+#include <thread>
 
 // Import things we need from the standard library
 using std::chrono::duration_cast;
@@ -18,6 +19,8 @@ using std::complex;
 using std::cout;
 using std::endl;
 using std::ofstream;
+
+ofstream times("mandlebrotTimes.csv");
 
 // Define the alias "the_clock" for the clock type we're going to use.
 typedef std::chrono::steady_clock the_clock;
@@ -29,7 +32,7 @@ const int HEIGHT = 1024;
 // The number of times to iterate before we assume that a point isn't in the
 // Mandelbrot set.
 // (You may need to turn this up if you zoom further into the set.)
-const int MAX_ITERATIONS = 1000;
+const int MAX_ITERATIONS = 100;
 
 // The image data.
 // Each pixel is represented as 0xRRGGBB.
@@ -248,14 +251,49 @@ void standardMandlebrot()
 	//compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488);
 }
 
-/*
- * SIZE: 640*640	-	MAX_ITERATIONS: 200
- * Time 1: 1530ms
- * Time 2: 1615ms
- * Time 3: 1812ms
- * 
- * Change code to loop for 30 timings then calculate the median.
- */
+void standardMandlebrot_Th(int increment)
+{
+	std::vector<std::thread> mbThreads;
+
+	// Start timing
+	the_clock::time_point start = the_clock::now();
+
+	// 1020 is the terminating condition as this accounts for rounding(floor) of division by 8.
+	for (int i = 0; i < 1020; i += increment)
+	{
+		mbThreads.push_back(std::thread(compute_mandelbrot, -0.751085, -0.734975, 0.118378, 0.134488, i, i + increment));
+	}
+
+	for (int i = 0; i < mbThreads.size(); ++i)
+	{
+		if (mbThreads[i].joinable())
+		{
+			mbThreads[i].join();
+		}
+	}
+
+	// Stop timing
+	the_clock::time_point end = the_clock::now();
+
+	// Compute the difference between the two times in milliseconds
+	auto time_taken = duration_cast<milliseconds>(end - start).count();
+	cout << "Computing the Mandelbrot set with threads took: " << time_taken << " ms." << endl;
+
+	times << time_taken << ",\n";
+}
+
+void runMultiMbThreadTimings()
+{
+	int counter = 1.0f;
+	int divisor = HEIGHT / counter;
+
+	while (counter < 9)
+	{
+		standardMandlebrot_Th(divisor);
+		++counter;
+		divisor = HEIGHT / counter;
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -263,9 +301,9 @@ int main(int argc, char *argv[])
 
 	//standardMandlebrot();
 	//std::list<long long> times = runMultipleTimings();
-	std::list<long long> times = calculateSlices();
+	//std::list<long long> times = calculateSlices();
 
-	times.sort();
+	/*times.sort();
 
 	for (auto iter = times.begin(); iter != times.end(); ++iter)
 	{
@@ -274,7 +312,10 @@ int main(int argc, char *argv[])
 
 	long long median = computeMedian(times);
 
-	std::cout << "The median of all times: " << median << '\n';
+	std::cout << "The median of all times: " << median << '\n';*/
+
+	//standardMandlebrot_Th();
+	runMultiMbThreadTimings();
 	
 	write_tga("output.tga");
 
