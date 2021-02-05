@@ -235,6 +235,9 @@ void standardMandlebrot()
 	// This shows the whole set.
 	//compute_mandelbrot(-2.0, 1.0, 1.125, -1.125, 16, 498);
 
+	// Zoomed in.
+	//compute_mandelbrot(-0.751085, -0.734975, 0.118378, 0.134488, 0, HEIGHT);
+
 	// Start timing
 	the_clock::time_point start = the_clock::now();
 
@@ -261,7 +264,11 @@ void standardMandlebrot_Th(int increment)
 	// 1020 is the terminating condition as this accounts for rounding(floor) of division by 8.
 	for (int i = 0; i < 1020; i += increment)
 	{
-		mbThreads.push_back(std::thread(compute_mandelbrot, -0.751085, -0.734975, 0.118378, 0.134488, i, i + increment));
+		// Zoomed in.
+		//mbThreads.push_back(std::thread(compute_mandelbrot, -0.751085, -0.734975, 0.118378, 0.134488, i, i + increment));
+
+		// Whole set.
+		mbThreads.push_back(std::thread(compute_mandelbrot, -2.0, 1.0, 1.125, -1.125, i, i + increment));
 	}
 
 	for (int i = 0; i < mbThreads.size(); ++i)
